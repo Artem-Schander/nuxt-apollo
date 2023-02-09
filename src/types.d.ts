@@ -2,6 +2,7 @@ import type { ClientOptions } from 'graphql-ws'
 import type { ApolloClient, HttpOptions, DefaultOptions, InMemoryCacheConfig } from '@apollo/client'
 import type { CookieOptions } from 'nuxt/dist/app/composables'
 import type { RestartableClient } from './runtime/ws'
+import type { PersistedQueryLink } from '@apollo/client/link/persisted-queries';
 export type { ErrorResponse } from '@apollo/client/link/error'
 
 type CookieAttributes = Omit< CookieOptions, 'encode' | 'decode' | 'expires' | 'default'>;
@@ -106,6 +107,11 @@ export type ClientConfig = {
    * Configuration for the auth cookie.
    **/
   cookieAttributes?: CookieAttributes;
+
+  /**
+   * Configuration for the auth cookie.
+   **/
+  persisting?: bool | PersistedQueryLink.Options | null;
 };
 
 export interface NuxtApolloConfig<T = ClientConfig> {

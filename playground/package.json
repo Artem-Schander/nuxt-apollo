@@ -3,6 +3,7 @@
     "version": "0.0.0",
     "name": "nuxt-apollo-playground",
     "dependencies": {
-      "@nuxtjs/apollo": "workspace:*"
+      "@nuxtjs/apollo": "workspace:*",
+      "crypto-hash": "^2.0.0"
     }
   }

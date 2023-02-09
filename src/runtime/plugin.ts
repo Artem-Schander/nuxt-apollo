@@ -1,5 +1,7 @@
 import destr from 'destr'
+import { sha256 } from 'crypto-hash';
 import { onError } from '@apollo/client/link/error'
+import { PersistedQueryLink, createPersistedQueryLink } from '@apollo/client/link/persisted-queries';
 import { getMainDefinition } from '@apollo/client/utilities'
 import { ApolloClients, provideApolloClients } from '@vue/apollo-composable'
 import { ApolloClient, ApolloLink, createHttpLink, InMemoryCache, split } from '@apollo/client/core'
@@ -88,23 +90,37 @@ export default defineNuxtPlugin((nuxtApp) => {
       nuxtApp.callHook('apollo:error', err)
     })
 
-    const link = ApolloLink.from([
-      errorLink,
-      ...(!wsLink
-        ? [httpLink]
-        : [
-            ...(clientConfig?.websocketsOnly
-              ? [wsLink]
-              : [
-                  split(({ query }) => {
-                    const definition = getMainDefinition(query)
-                    return (definition.kind === 'OperationDefinition' && definition.operation === 'subscription')
-                  },
-                  wsLink,
-                  httpLink)
-                ])
+    let persistedQueryLink
+    if (process.client && clientConfig.persisting) {
+      let persistingOptions
+      if (typeof clientConfig.persisting === 'object' && clientConfig.persisting !== null) {
+        persistingOptions = clientConfig.persisting
+      }
+      if (persistingOptions.sha256 === undefined && persistingOptions.generateHash === undefined) {
+        persistingOptions.sha256 = sha256
+      }
+      persistedQueryLink = createPersistedQueryLink(persistingOptions)
+    }
+
+    let links: any = []
+    links.push(errorLink)
+    if (persistedQueryLink) links.push(persistedQueryLink)
+    links.push(...(!wsLink
+      ? [httpLink]
+      : [
+        ...(clientConfig?.websocketsOnly
+          ? [wsLink]
+          : [
+            split(({ query }) => {
+              const definition = getMainDefinition(query)
+              return (definition.kind === 'OperationDefinition' && definition.operation === 'subscription')
+            },
+              wsLink,
+              httpLink)
           ])
-    ])
+      ]))
+
+    const link = ApolloLink.from(links)
 
     const cache = new InMemoryCache(clientConfig.inMemoryCacheOptions)
 

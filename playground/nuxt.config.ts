@@ -1,3 +1,5 @@
+import { sha256 } from 'crypto-hash';
+
 export default defineNuxtConfig({
   modules: ['@nuxt/ui', '@nuxtjs/apollo'],
 
@@ -9,6 +11,13 @@ export default defineNuxtConfig({
   apollo: {
     clients: {
       default: './apollo/default.ts',
+      apq: {
+        httpEndpoint: './apollo/default.ts',
+        persisting: {
+          sha256,
+          useGETForHashedQueries: true
+        },
+      },
       github: {
         httpEndpoint: 'https://api.github.com/graphql',
         tokenStorage: 'localStorage'
